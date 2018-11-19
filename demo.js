@@ -1,10 +1,9 @@
-const superagent = require('superagent');
 const charset = require('superagent-charset');
 const async = require('async');
 const fs = require('fs');
 const request = require('request');
 const cheerio = require('cheerio');
-charset(superagent);
+superagent = require('superagent');
 
 const baseUrl = 'https://www.vmgirls.com/'
 let type =  'page';
@@ -17,14 +16,15 @@ mkdirs('./image/'+page,function(){
 
 function getPageUrl(url,page){
     superagent.get(url)
-    .charset('UTF-8')
-    .end(function(err, sres) {
-        var items = [];
-        var images = [];
+    // .set('Connection','keep-alive')
+    // .charset('UTF-8')
+    // .buffer(true)
+    .end(function(err, sres) {       
         if (err) {
             console.log('ERR: ' + err);
             return;
         }else{
+            var items = [];
             var $ = cheerio.load(sres.text);
             $('div.update_area ul.update_area_lists li.i_list a').each(function(idx, element) {
                 var $element = $(element);
@@ -48,7 +48,9 @@ function getImgUrl(its,ind,page){
   }else{
     it = its[ind];
     superagent.get(its[ind].url)
-    .charset('UTF-8')
+    // .set('Connection','keep-alive')
+    // .charset('UTF-8')
+    // .buffer(true)
     .end(function(err, sres) {
         var items = [];
         if (err) {
@@ -75,8 +77,7 @@ function getImgUrl(its,ind,page){
             });
         }       
     });
-  }
-  
+  }  
 }
 
 
@@ -84,7 +85,7 @@ function savedImg(img_src,name,page,callback) {
     try{
         request.head(img_src);
         var writeStream = fs.createWriteStream('./image/'+page+'/'+name);
-        var readStream = request({url: img_src, timeout: 15000})
+        var readStream = request({url: img_src})
         readStream.pipe(writeStream);
         readStream.on('end', function(response) {
             writeStream.end();
@@ -92,6 +93,7 @@ function savedImg(img_src,name,page,callback) {
         writeStream.on("finish", function() {
             callback();
         });
+        console.log(name);
     }
     catch(ex){
         console.log(ex);
